@@ -1,0 +1,43 @@
+from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
+
+# Quantum-resistant key generation (SHA-512 + 120k iterations)
+def generate_quantum_resistant_key(brainwave_data: bytes, salt: bytes) -> bytes:
+    kdf = PBKDF2HMAC(
+        algorithm=hashes.SHA512(),
+        length=32,  # AES-256 key
+        salt=salt,
+        iterations=120000,
+    )
+    pw_derived = kdf.derive(brainwave_data)
+    digest = hashes.Hash(hashes.SHA512())
+    digest.update(pw_derived)
+    return digest.finalize()[:32]
+
+# Encrypt motor command
+def auth_and_encrypt(command: str, eeg_snippet: bytes) -> bytes:
+    salt = os.urandom(16)
+    key = generate_quantum_resistant_key(eeg_snippet, salt)
+    iv = os.urandom(12)
+    cipher = Cipher(algorithms.AES(key), modes.GCM(iv))
+    encryptor = cipher.encryptor()
+    ciphertext = encryptor.update(command.encode()) + encryptor.finalize()
+    tag = encryptor.tag
+    return salt + iv + tag + ciphertext
+
+# Decrypt + simulate prosthetic response
+def decrypt_and_control(ciphertext: bytes, eeg_snippet: bytes):
+    if len(ciphertext) < 44:
+        return "AUTH FAILED: Invalid packet - ARM LOCKED"
+    salt, iv, tag, ct = ciphertext[:16], ciphertext[16:28], ciphertext[28:44], ciphertext[44:]
+    key = generate_quantum_resistant_key(eeg_snippet, salt)
+    try:
+        cipher = Cipher(algorithms.AES(key), modes.GCM(iv, tag))
+        decryptor = cipher.decryptor()
+        plaintext = decryptor.update(ct) + decryptor.finalize()
+        cmd = plaintext.decode()
+        # Simulated motor movement (no external libs needed)
+    print(f"Re-auth → {result_reauth}")(encrypted, eeg_real): {speed:.2f} rad/s")
+
+
